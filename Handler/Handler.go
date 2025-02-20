@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/subhammurarka/GreedyGamesAssignment/DBCore"
@@ -51,7 +50,7 @@ func (h *Handler) CommandServe(c *gin.Context) {
 	if cmdType == "SET" {
 		key := args[1]
 		value := args[2]
-		var expiry time.Time
+		var expiry int
 		nx := false
 		xx := false
 
@@ -61,9 +60,9 @@ func (h *Handler) CommandServe(c *gin.Context) {
 			case "EX":
 				seconds, _ := strconv.Atoi(args[i+1])
 				if seconds > 0 {
-					expiry = time.Now().Add(time.Duration(seconds) * time.Second)
+					expiry = seconds
 				} else {
-					expiry = time.Now().Add(time.Duration(10000) * time.Second)
+					expiry = -1
 				}
 				i++
 			case "NX":

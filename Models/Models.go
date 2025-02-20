@@ -13,6 +13,10 @@ type Request struct {
 }
 
 func ValidateInput(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("invalid command")
+	}
+
 	cmdType := strings.ToUpper(args[0])
 	switch cmdType {
 
@@ -67,21 +71,22 @@ func validateSET(args []string) error {
 	for i := 3; i < len(args); i++ {
 		arg := strings.ToUpper(args[i])
 		if arg == "EX" {
-			if i+1 >= len(args) {
+			if i+1 == len(args) {
 				return fmt.Errorf("missing expiry time after EX")
 			}
 			// Convert expiry time to integer
-			_, err := strconv.Atoi(args[i+1])
+			val, err := strconv.Atoi(args[i+1])
+			if val < 0 {
+				return errors.New("expiry time must be positive integer")
+			}
+
 			if err != nil {
 				return errors.New("expiry time must be an integer")
 			}
 			i++
 		} else if arg == "NX" || arg == "XX" {
 			if condition != "" {
-				return fmt.Errorf("cannot use both NX and XX together")
-			}
-			if i+1 >= len(args) {
-				return fmt.Errorf("invalid syntax")
+				return fmt.Errorf("either xx or nx can be used at a time.")
 			}
 			condition = arg
 		} else {
@@ -126,9 +131,13 @@ func validateBQPop(args []string) error {
 		return fmt.Errorf("invalid BQPOP command format. BQPOP <key> <timeout>")
 	}
 
-	_, err := strconv.Atoi(args[2])
+	val, err := strconv.Atoi(args[2])
 	if err != nil {
 		return fmt.Errorf("expiry time must be an integer")
+	}
+
+	if val < 0 {
+		return fmt.Errorf("expiry time must be a positive integer")
 	}
 
 	return nil

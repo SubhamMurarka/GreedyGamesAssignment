@@ -165,20 +165,32 @@ func (db *DB) getQueueShard(key string) *QueueShard {
 
 // ------- Key-Value Operations -------
 
-func (db *DB) Set(key string, value interface{}, expiration time.Time, nx, xx bool) error {
+func (db *DB) Set(key string, value interface{}, expiration int, nx, xx bool) error {
 	shard := db.getShard(key)
 	shard.Lock()
 	defer shard.Unlock()
 
-	_, exists := shard.data[key]
+	entry, exists := shard.data[key]
 	if nx && exists {
 		return errors.New("key already exists")
 	}
 	if xx && !exists {
 		return errors.New("key does not exist")
 	}
+	if !xx && exists {
+		return errors.New("key already exists")
+	}
 
-	shard.data[key] = Entry{Value: value, ExpiresAt: expiration}
+	var expiry = time.Now().Add(100 * 365 * 24 * time.Hour) // 100 years
+
+	if xx {
+		if expiration != -1 {
+			expiry = time.Now().Add(time.Duration(expiration) * time.Second)
+		}
+		expiry = entry.ExpiresAt
+	}
+
+	shard.data[key] = Entry{Value: value, ExpiresAt: expiry}
 	return nil
 }
 
@@ -250,7 +262,6 @@ func (db *DB) BQPOP(key string, timeout float64) (interface{}, error) {
 	}
 	shard.Unlock()
 
-	// Only one client can wait on a queue at a time
 	if !queue.readLock.TryLock() {
 		return nil, ErrBlocked
 	}
@@ -265,7 +276,6 @@ func (db *DB) BQPOP(key string, timeout float64) (interface{}, error) {
 		return nil, ErrEmpty
 	}
 
-	// Set blocking flag and wait
 	atomic.StoreInt32(&queue.isBlocked, 1)
 	defer atomic.StoreInt32(&queue.isBlocked, 0)
 
