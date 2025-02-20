@@ -88,3 +88,8 @@ Implemented with singly **Linked List**
        - Shopkeeper is bringing the coffee and Customer demands the coffee
        - Why to use the counter ? simply **Exchange**
 
+## Resources:
+
+ - GopherCon talk on locks : https://www.youtube.com/watch?v=gNQ6j2Y2HFs
+ - Karan Jetli Concurrent Stacks : https://www.youtube.com/watch?v=mnCp-mfgFuc
+
