@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
-	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -18,9 +17,9 @@ var (
 )
 
 const (
-	numShards           = 256
-	numEliminationSlots = 8
-	eliminationTimeout  = 10 * time.Microsecond
+	numShards = 256
+	// numEliminationSlots = 8
+	// eliminationTimeout  = 10 * time.Microsecond
 )
 
 // ----------- Entry Types ----------------------
@@ -37,51 +36,52 @@ type StackNode struct {
 
 // ---------Elimination Array ------------
 
-type EliminationArray struct {
-	slots [numEliminationSlots]unsafe.Pointer
-}
+// type EliminationArray struct {
+// 	slots [numEliminationSlots]unsafe.Pointer
+// }
 
-func (e *EliminationArray) exchange(value unsafe.Pointer) unsafe.Pointer {
-	index := rand.Intn(numEliminationSlots)
-	slot := &e.slots[index]
+// func (e *EliminationArray) exchange(value unsafe.Pointer) unsafe.Pointer {
+// 	index := rand.Intn(numEliminationSlots)
+// 	slot := &e.slots[index]
 
-	previous := atomic.SwapPointer(slot, value)
-	if previous != nil {
-		atomic.StorePointer(slot, nil)
-		return previous
-	}
+// 	previous := atomic.SwapPointer(slot, value)
+// 	if previous != nil {
+// 		atomic.StorePointer(slot, nil)
+// 		return previous
+// 	}
 
-	time.Sleep(eliminationTimeout)
-	atomic.CompareAndSwapPointer(slot, value, nil)
-	return nil
-}
+// 	time.Sleep(eliminationTimeout)
+// 	atomic.CompareAndSwapPointer(slot, value, nil)
+// 	return nil
+// }
 
 // ------- Treiber Stack ------------
 
 type TreiberStack struct {
-	top         unsafe.Pointer
-	elimination EliminationArray
+	top unsafe.Pointer
+	// elimination EliminationArray
 }
 
 func (s *TreiberStack) Push(value interface{}) {
 	newNode := &StackNode{Value: value}
 	valuePtr := unsafe.Pointer(newNode)
 
-	if exchanged := s.elimination.exchange(valuePtr); exchanged == nil {
-		for {
-			oldTop := (*StackNode)(atomic.LoadPointer(&s.top))
-			newNode.Next = oldTop
-			if atomic.CompareAndSwapPointer(&s.top, unsafe.Pointer(oldTop), valuePtr) {
-				return
-			}
+	// if exchanged := s.elimination.exchange(valuePtr); exchanged == nil {
+	for {
+		oldTop := (*StackNode)(atomic.LoadPointer(&s.top))
+		newNode.Next = oldTop
+		if atomic.CompareAndSwapPointer(&s.top, unsafe.Pointer(oldTop), valuePtr) {
+			return
 		}
 	}
 }
 
+// }
+
 func (s *TreiberStack) Pop() (interface{}, error) {
-	if exchanged := s.elimination.exchange(nil); exchanged != nil {
-		return (*StackNode)(exchanged).Value, nil
-	}
+	// if exchanged := s.elimination.exchange(nil); exchanged != nil {
+	// 	return (*StackNode)(exchanged).Value, nil
+	// }
 
 	for {
 		oldTop := (*StackNode)(atomic.LoadPointer(&s.top))

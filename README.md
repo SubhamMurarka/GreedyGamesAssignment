@@ -73,7 +73,7 @@ Implemented with singly **Linked List**
        - Put it on the counter
        - Customer takes the coffee
 
-4. **Final Implementation: Elimination-Backoff Stack**
+4. **Can it be made more faster, YES! : Elimination-Backoff Stack**
    - Advanced lock-free implementation
    - Uses elimination array for direct push/pop exchange
    - Benefits:
@@ -88,3 +88,8 @@ Implemented with singly **Linked List**
        - Shopkeeper is bringing the coffee and Customer demands the coffee
        - Why to use the counter ? simply **Exchange**
 
+
+## Resources:
+
+ - GopherCon talk on locks : https://www.youtube.com/watch?v=gNQ6j2Y2HFs
+ - Karan Jetli Concurrent Stacks : https://www.youtube.com/watch?v=mnCp-mfgFuc
