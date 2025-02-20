@@ -52,7 +52,7 @@ The key-value store implementation evolved through several iterations to achieve
 
 ### Queue Implementation
 
-The queue implementation underwent several iterations to achieve optimal concurrent performance:
+The queue implementation thought process underwent several iterations to achieve optimal concurrent performance:
 
 Implemented with singly **Linked List**
 
